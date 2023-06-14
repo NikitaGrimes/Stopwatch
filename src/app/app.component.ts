@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Subscription, BehaviorSubject, interval} from 'rxjs';
+import { Subscription, BehaviorSubject } from 'rxjs';
 import { StopWatch } from './models/stop-watch';
 import { TimerService } from './services/timer.service';
 
@@ -12,7 +12,7 @@ export class AppComponent implements OnDestroy{
   time: StopWatch = new StopWatch(0);
   timerSubscription?: Subscription;
   isTimerRunning: boolean = false;
-  dbClickSubject?: BehaviorSubject<number>;
+  dbClickSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
   
   constructor(private timerService: TimerService){
 
@@ -44,11 +44,6 @@ export class AppComponent implements OnDestroy{
   }
 
   waitWatching(): void{
-    if(!this.dbClickSubject){
-      this.dbClickSubject = new BehaviorSubject<number>(Date.now());
-      return;
-    }
-
     let timeNow = Date.now();
     this.dbClickSubject.subscribe(lastTime => {
       if ((timeNow - lastTime) < 300){

@@ -18,7 +18,7 @@ export class TimerService {
           clearInterval(timer);
         }
       }
-    })
+    });
   }
 
   clear(): void{
