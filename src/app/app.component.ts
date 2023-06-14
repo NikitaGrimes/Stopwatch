@@ -1,56 +1,52 @@
-import { Component, OnDestroy } from '@angular/core';
-import { Subscription, BehaviorSubject } from 'rxjs';
-import { StopWatch } from './models/stop-watch';
-import { TimerService } from './services/timer.service';
+import { Component } from '@angular/core';
+import { BehaviorSubject, interval, map, of, pipe, startWith, switchMap } from 'rxjs';
+
+type Command = "start" | "stop" | "wait" | "reset";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnDestroy{
-  time: StopWatch = new StopWatch(0);
-  timerSubscription?: Subscription;
-  isTimerRunning: boolean = false;
-  dbClickSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+export class AppComponent{
+  time = 0;
+  timer$ = new BehaviorSubject<number>(this.time);
+  command$ = new BehaviorSubject<Command>("stop");
   
-  constructor(private timerService: TimerService){
-
-  }
-
-  ngOnDestroy(): void {
-    this.timerSubscription?.unsubscribe();
+  constructor(){
+    this.command$.pipe(switchMap((command) => interval(100).pipe(map(_ => {
+      switch (command){
+        case "start":
+          this.timer$.next(++this.time);
+          break;
+        case "reset":
+          this.time = 0;
+          this.timer$.next(++this.time);
+          this.command$.next("start");
+          break;
+        case "stop":
+          this.command$.next("wait");
+          this.time = 0;
+          break;
+        case "wait":
+          
+      }
+    }), startWith(this.timer$.next(this.time))))).subscribe();
   }
 
   startWatching(): void{
-    if (this.isTimerRunning)
-      return;
-
-    this.timerSubscription = this.timerService.getTimer().subscribe(second => this.time.seconds = second)
-    this.isTimerRunning = true;
+    this.command$.next("start");
   }
 
   stopWatching(): void{
-    this.timerSubscription?.unsubscribe();
-    this.timerService.clear();
-    this.isTimerRunning = false;
+    this.command$.next("stop");
   }
 
   resetWatching(): void{
-    this.timerSubscription?.unsubscribe();
-    this.timerService.clear();
-    this.timerSubscription = this.timerService.getTimer().subscribe(second => this.time.seconds = second)
-    this.isTimerRunning = true;
+    this.command$.next("reset");
   }
 
   waitWatching(): void{
-    let timeNow = Date.now();
-    this.dbClickSubject.subscribe(lastTime => {
-      if ((timeNow - lastTime) < 300){
-        this.timerSubscription?.unsubscribe();
-        this.isTimerRunning = false;
-      }
-    }).unsubscribe();
-    this.dbClickSubject.next(timeNow);
+    this.command$.next("wait");
   }
 }

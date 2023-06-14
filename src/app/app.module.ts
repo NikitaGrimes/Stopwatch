@@ -2,10 +2,12 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
+import { StopWatchPipe } from './stop-watch.pipe';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    StopWatchPipe
   ],
   imports: [
     BrowserModule
