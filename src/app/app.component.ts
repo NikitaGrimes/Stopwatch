@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, bufferCount, Subject } from 'rxjs';
+import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
+import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, bufferCount, Subject, Subscription, timestamp } from 'rxjs';
 
 type Command = "start" | "stop" | "wait" | "reset";
 
@@ -9,11 +9,12 @@ type Command = "start" | "stop" | "wait" | "reset";
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent{
+export class AppComponent implements OnDestroy{
   timer$: Observable<number>;
   active$: Observable<boolean>;
   command$ = new BehaviorSubject<Command>("stop");
-  dbClick$ = new Subject<number>;
+  dbClick$ = new Subject<void>;
+  dbClickSubscription?: Subscription;
   
   constructor(){
     let time = 0;
@@ -37,10 +38,14 @@ export class AppComponent{
       return command === "start" || command === "reset";
     }));
 
-    this.dbClick$.pipe(bufferCount(2, 1)).subscribe(clicks => {
-      if ((clicks[1] - clicks[0]) < 300)
+    this.dbClickSubscription = this.dbClick$.pipe(timestamp(), bufferCount(2, 1)).subscribe(clicks => {
+      if ((clicks[1].timestamp - clicks[0].timestamp) < 300)
         this.command$.next("wait");
     });
+  }
+
+  ngOnDestroy(): void {
+    this.dbClickSubscription?.unsubscribe();
   }
 
   get runChangeDetection() {
@@ -61,6 +66,6 @@ export class AppComponent{
   }
 
   waitWatching(): void{
-    this.dbClick$.next(Date.now());
+    this.dbClick$.next();
   }
 }
