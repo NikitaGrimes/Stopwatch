@@ -21,7 +21,7 @@ export class AppComponent{
       const temp = time;
       switch (command){
         case "start":
-          return interval(100).pipe(map(_ => ++time), startWith(time));
+          return interval(100).pipe(map(() => ++time), startWith(time));
         case "stop":
           time = 0;
           return of(temp);
@@ -29,7 +29,7 @@ export class AppComponent{
           return of(time);
         case "reset":
           time = 0;
-          return interval(100).pipe(map(_ => ++time), startWith(0));
+          return interval(100).pipe(map(() => ++time), startWith(0));
       }
     }));
 
