@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { StopWatchPipe } from './stop-watch.pipe';
+import { StopWatchPipe } from './pipes/stop-watch.pipe';
 
 @NgModule({
   declarations: [
