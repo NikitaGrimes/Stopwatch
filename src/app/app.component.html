@@ -1,9 +1,9 @@
 <p class="stopwatch">{{timer$ | async | stopWatch}}</p>
 <div class="button-container">
-  <button class="button button-start" (click)="startWatching()" *ngIf="!active$.getValue()">
+  <button class="button button-start" (click)="startWatching()" *ngIf="(active$ | async) === false">
     Start
   </button>
-  <button class="button button-stop" (click)="stopWatching()" *ngIf="active$.getValue()">
+  <button class="button button-stop" (click)="stopWatching()" *ngIf="(active$ | async)">
     Stop
   </button>
   <button class="button button-wait" (click)="waitWatching()">
@@ -13,3 +13,4 @@
     Reset
   </button>
 </div>
+{{runChangeDetection}}

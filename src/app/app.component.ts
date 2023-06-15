@@ -1,56 +1,51 @@
-import { Component, OnDestroy } from '@angular/core';
-import { BehaviorSubject, interval, of, startWith, switchMap, map, Subscription, filter } from 'rxjs';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, bufferCount, Subject } from 'rxjs';
 
 type Command = "start" | "stop" | "wait" | "reset";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent implements OnDestroy{
-  timer$ = new BehaviorSubject<number>(0);
+export class AppComponent{
+  timer$: Observable<number>;
+  active$: Observable<boolean>;
   command$ = new BehaviorSubject<Command>("stop");
-  active$ = new BehaviorSubject<boolean>(false);
-  commandSubscribtion?: Subscription;
+  dbClick$ = new Subject<number>;
   
   constructor(){
-    let currentTime = 0;
-    let waitTime = 0;
-    let lastClickTime = 0;
-    this.commandSubscribtion = this.command$.pipe(filter(command => {
-      const nowClickTime = Date.now();
-      if (command !== "wait" || (command === "wait" && ((nowClickTime - lastClickTime) < 300)))
-        return true;
-      lastClickTime = nowClickTime;
-      return false;
-    }), switchMap(command => {
+    let time = 0;
+    this.timer$ = this.command$.pipe(switchMap(command => {
+      const temp = time;
       switch (command){
         case "start":
-          this.active$.next(true);
-          return interval(100).pipe(map(value => ++value), startWith(0));
+          return interval(100).pipe(map(_ => ++time), startWith(time));
         case "stop":
-          this.active$.next(false);
-          currentTime += waitTime;
-          waitTime = 0;
-          return of(currentTime);
+          time = 0;
+          return of(temp);
         case "wait":
-          this.active$.next(false);
-           waitTime += currentTime;
-          return of(0);
+          return of(time);
         case "reset":
-          this.active$.next(true);
-          waitTime = 0;
-          return interval(100).pipe(map(value => ++value), startWith(0));
+          time = 0;
+          return interval(100).pipe(map(_ => ++time), startWith(0));
       }
-    })).subscribe(value => {
-      currentTime = value;
-      this.timer$.next(waitTime + currentTime);
+    }));
+
+    this.active$ = this.command$.pipe(map(command => {
+      return command === "start" || command === "reset";
+    }));
+
+    this.dbClick$.pipe(bufferCount(2, 1)).subscribe(clicks => {
+      if ((clicks[1] - clicks[0]) < 300)
+        this.command$.next("wait");
     });
   }
 
-  ngOnDestroy(): void {
-    this.commandSubscribtion?.unsubscribe();
+  get runChangeDetection() {
+    console.log('Checking the view');
+    return "";
   }
 
   startWatching(): void{
@@ -66,6 +61,6 @@ export class AppComponent implements OnDestroy{
   }
 
   waitWatching(): void{
-    this.command$.next("wait");
+    this.dbClick$.next(Date.now());
   }
 }
