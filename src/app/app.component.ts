@@ -38,8 +38,8 @@ export class AppComponent{
       return command === "start" || command === "reset";
     }));
 
-    this.dbClick$.pipe(timestamp(), pairwise()).subscribe(clicks => {
-      if ((clicks[1].timestamp - clicks[0].timestamp) < 300)
+    this.dbClick$.pipe(timestamp(), pairwise()).subscribe(([click1, click2]) => {
+      if ((click1.timestamp - click2.timestamp) < 300)
         this.command$.next("wait");
     });
   }
