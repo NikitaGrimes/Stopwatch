@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, Subject, Subscription, timestamp, pairwise, timeInterval } from 'rxjs';
+import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, Subject, timeInterval } from 'rxjs';
 
 type Command = "start" | "stop" | "wait" | "reset";
 
@@ -14,7 +14,6 @@ export class AppComponent{
   active$: Observable<boolean>;
   command$ = new BehaviorSubject<Command>("stop");
   dbClick$ = new Subject<void>;
-  dbClickSubscription?: Subscription;
   
   constructor(){
     let time = 0;
