@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, bufferCount, Subject, Subscription, timestamp } from 'rxjs';
+import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, Subject, Subscription, timestamp, pairwise } from 'rxjs';
 
 type Command = "start" | "stop" | "wait" | "reset";
 
@@ -38,15 +38,10 @@ export class AppComponent{
       return command === "start" || command === "reset";
     }));
 
-    this.dbClick$.pipe(timestamp(), bufferCount(2, 1)).subscribe(clicks => {
+    this.dbClick$.pipe(timestamp(), pairwise()).subscribe(clicks => {
       if ((clicks[1].timestamp - clicks[0].timestamp) < 300)
         this.command$.next("wait");
     });
-  }
-
-  get runChangeDetection() {
-    console.log('Checking the view');
-    return "";
   }
 
   startWatching(): void{
