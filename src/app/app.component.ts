@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, Subject, Subscription, timestamp, pairwise } from 'rxjs';
+import { BehaviorSubject, interval, of, startWith, switchMap, map, Observable, Subject, Subscription, timestamp, pairwise, timeInterval } from 'rxjs';
 
 type Command = "start" | "stop" | "wait" | "reset";
 
@@ -38,8 +38,8 @@ export class AppComponent{
       return command === "start" || command === "reset";
     }));
 
-    this.dbClick$.pipe(timestamp(), pairwise()).subscribe(([click1, click2]) => {
-      if ((click1.timestamp - click2.timestamp) < 300)
+    this.dbClick$.pipe(timeInterval()).subscribe(timeClick => {
+      if (timeClick.interval < 300)
         this.command$.next("wait");
     });
   }
